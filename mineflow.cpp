@@ -4436,7 +4436,7 @@ std::shared_ptr<IPrecedenceConstraints> InitMinSearch(int* argc, char*** argv, I
     return std::make_shared<Regular3DBlockModelPatternPrecedence>(blockDef, pattern);
 }
 
-auto read_file(std::string_view path) -> std::string {
+auto read_file_so(std::string_view path) -> std::string {
     // From https://stackoverflow.com/a/116220
     constexpr auto read_size = std::size_t(4096);
     auto stream = std::ifstream(path.data());
@@ -4449,6 +4449,21 @@ auto read_file(std::string_view path) -> std::string {
     }
     out.append(buf, 0, stream.gcount());
     return out;
+}
+
+auto read_file(std::string_view path) -> std::string {
+
+    auto is = std::ifstream(path.data());
+    is.exceptions(std::ios_base::badbit);
+
+    // get length of file:
+    is.seekg (0, is.end);
+    auto fsize = is.tellg();
+    is.seekg (0, is.beg);
+
+    auto buf = std::string(fsize, '\0');
+    is.read(&buf[0], fsize);
+    return buf;
 }
 
 std::shared_ptr<IPrecedenceConstraints> InitExplicit(int* argc, char*** argv, IndexType* numBlocks)
