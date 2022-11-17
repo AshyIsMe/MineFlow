@@ -4436,6 +4436,21 @@ std::shared_ptr<IPrecedenceConstraints> InitMinSearch(int* argc, char*** argv, I
     return std::make_shared<Regular3DBlockModelPatternPrecedence>(blockDef, pattern);
 }
 
+auto read_file(std::string_view path) -> std::string {
+    // From https://stackoverflow.com/a/116220
+    constexpr auto read_size = std::size_t(4096);
+    auto stream = std::ifstream(path.data());
+    stream.exceptions(std::ios_base::badbit);
+
+    auto out = std::string();
+    auto buf = std::string(read_size, '\0');
+    while (stream.read(& buf[0], read_size)) {
+        out.append(buf, 0, stream.gcount());
+    }
+    out.append(buf, 0, stream.gcount());
+    return out;
+}
+
 std::shared_ptr<IPrecedenceConstraints> InitExplicit(int* argc, char*** argv, IndexType* numBlocks)
 {
     std::string explicitFile;
@@ -4444,11 +4459,8 @@ std::shared_ptr<IPrecedenceConstraints> InitExplicit(int* argc, char*** argv, In
         return nullptr;
     }
 
-    std::ifstream in(explicitFile);
-    if (!in.good()) {
-        std::cerr << "Failed opening explicit precedence file" << std::endl;
-        return nullptr;
-    }
+    std::string explicitFileBuff = read_file(explicitFile);
+    std::istringstream in(explicitFileBuff);
 
     std::string line;
     if (!std::getline(in, line)) {
